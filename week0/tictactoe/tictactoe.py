@@ -54,19 +54,12 @@ def result(board, action):
     """
     Returns the board that results from making move (i, j) on the board.
     """
-    if not valid(action):
+    if action not in actions(board):
         raise Exception("Invalid action")
 
     new_board = deepcopy(board)
     new_board[action[0]][action[1]] = player(board)
     return new_board
-
-def valid(action):
-    if action[0] < 0 or action[0] > 2:
-        return False
-    if action[1] < 0 or action[1] > 2:
-        return False
-    return True
 
 
 def winner(board):
@@ -115,16 +108,10 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    a = None
-    v = -math.inf
+    if terminal(board):
+        return None
 
-    for action in actions(board):
-        mv = max_value(result(board, action))
-        if mv > v:
-            v = mv
-            a = action
-
-    return a
+    return max_value(board)[1] if player(board) == X else min_value(board)[1]
 
 
 def max_value(board):
@@ -132,14 +119,18 @@ def max_value(board):
     Returns the max value for current player on the board.
     """
     if terminal(board):
-        return utility(board)
+        return utility(board), None
 
     v = -math.inf
+    a = None
 
     for action in actions(board):
-        v = max(v, min_value(result(board, action)))
+        mv, _ = min_value(result(board, action))
+        if mv > v:
+            v = mv
+            a = action
 
-    return v
+    return v, a
 
 
 def min_value(board):
@@ -147,12 +138,16 @@ def min_value(board):
     Returns the min value for the current player on the board.
     """
     if terminal(board):
-        return utility(board)
+        return utility(board), None
 
     v = math.inf
+    a = None
 
     for action in actions(board):
-        v = min(v, max_value(result(board, action)))
+        mv, _ = max_value(result(board, action))
+        if mv < v:
+            v = mv
+            a = action
 
-    return v
+    return v, a
 
