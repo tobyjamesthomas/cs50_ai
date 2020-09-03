@@ -3,6 +3,7 @@ Tic Tac Toe Player
 """
 
 import math
+from copy import deepcopy
 
 X = "X"
 O = "O"
@@ -13,9 +14,9 @@ def initial_state():
     """
     Returns starting state of the board.
     """
-    return [[X, EMPTY, X],
-            [O, O, EMPTY],
-            [X, O, O]]
+    return [[EMPTY, EMPTY, EMPTY],
+            [EMPTY, EMPTY, EMPTY],
+            [EMPTY, EMPTY, EMPTY]]
 
 
 def player(board):
@@ -33,6 +34,7 @@ def player(board):
                 num_o += 1
 
     return O if num_o < num_x else X
+
 
 def actions(board):
     """
@@ -52,8 +54,19 @@ def result(board, action):
     """
     Returns the board that results from making move (i, j) on the board.
     """
-    board[action[0]][action[1]] = player(board)
-    return board
+    if not valid(action):
+        raise Exception("Invalid action")
+
+    new_board = deepcopy(board)
+    new_board[action[0]][action[1]] = player(board)
+    return new_board
+
+def valid(action):
+    if action[0] < 0 or action[0] > 2:
+        return False
+    if action[1] < 0 or action[1] > 2:
+        return False
+    return True
 
 
 def winner(board):
@@ -80,7 +93,15 @@ def terminal(board):
     """
     Returns True if game is over, False otherwise.
     """
-    return winner(board) != None
+    if winner(board):
+        return True
+
+    for row in board:
+        for col in row:
+            if col == EMPTY:
+                return False
+
+    return True
 
 
 def utility(board):
@@ -94,11 +115,44 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    raise NotImplementedError
+    a = None
+    v = -math.inf
 
-#  print(player(initial_state()))
-#  print(actions(initial_state()))
-#  print(result(initial_state(), (0,0)))
-print(winner(initial_state()))
-print(terminal(initial_state()))
-print(utility(initial_state()))
+    for action in actions(board):
+        mv = max_value(result(board, action))
+        if mv > v:
+            v = mv
+            a = action
+
+    return a
+
+
+def max_value(board):
+    """
+    Returns the max value for current player on the board.
+    """
+    if terminal(board):
+        return utility(board)
+
+    v = -math.inf
+
+    for action in actions(board):
+        v = max(v, min_value(result(board, action)))
+
+    return v
+
+
+def min_value(board):
+    """
+    Returns the min value for the current player on the board.
+    """
+    if terminal(board):
+        return utility(board)
+
+    v = math.inf
+
+    for action in actions(board):
+        v = min(v, max_value(result(board, action)))
+
+    return v
+
